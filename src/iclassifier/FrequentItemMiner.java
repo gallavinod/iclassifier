@@ -1,49 +1,62 @@
 package iclassifier;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class FrequentItemMiner {
+	
+	public static ArrayList <BigInteger> transactionsList = new ArrayList <BigInteger> ();
+	public static HashSet <BigInteger> baseItemSet = new HashSet <BigInteger> ();
+	public static Map <Integer, HashSet <BigInteger>> frequentPatternMap = new HashMap <Integer, HashSet <BigInteger>> ();
+	public static int size = 1;
+	
+	public static int frequency (BigInteger pattern) {
+		int count = 0;
+		for (BigInteger transaction : transactionsList) {
+			if (transaction.and(pattern).equals(pattern)) {
+				count++;
+			}
+		}
+		return count;
+	}
 
 	public static void main(String[] args) {
-		Map <String, Integer> itemIndexMap = null;
-		ArrayList <BigInteger> transactions = null;
-		BufferedReader itemIndexReader = null;
 		BufferedReader dataReader = null;
-		BufferedWriter dataWriter = null;
-
+		BufferedReader baseItemReader = null;
+		int threshold = 0;
+		
+		
 		try {
-			itemIndexReader = new BufferedReader(new FileReader(new File(args[0])));
-			itemIndexMap = new HashMap <String, Integer> ();
-			String itemIndexLine = null;
-			while ((itemIndexLine = itemIndexReader.readLine()) != null) {
-				String[] itemIndex = itemIndexLine.split(" ");
-				itemIndexMap.put(itemIndex[0], Integer.getInteger(itemIndex[1]));
-			}
-			itemIndexReader.close();
-
-			dataReader = new BufferedReader(new FileReader(new File(args[1])));
-			transactions = new ArrayList <BigInteger> ();
-			String dataRecord = null;
-			StringBuilder bigIntSb = new StringBuilder("");
-			while ((dataRecord = dataReader.readLine()) != null) {
-				BigInteger bigRecord = new BigInteger(dataRecord,2);
-				transactions.add(bigRecord);
-				bigIntSb.append(bigRecord+"\n");
+		//	dataReader = new BufferedReader(new FileReader(new File(args[0])));
+			dataReader = new BufferedReader(new FileReader(new File("mushroom-edible-biginteger")));
+			String dataLine = null;
+			
+			while ((dataLine = dataReader.readLine()) != null) {
+				transactionsList.add(new BigInteger(dataLine,10));
 			}
 			dataReader.close();
-
-			dataWriter = new BufferedWriter(new FileWriter(new File(args[2])));
-			dataWriter.write(bigIntSb.toString().trim());
-
+			System.out.println(transactionsList.size());
+			
+			baseItemReader = new BufferedReader(new FileReader(new File("item-index-biginteger")));
+			String itemLine = null;
+			
+			while ((itemLine = baseItemReader.readLine()) != null) {
+				int itemFrequency = frequency(new BigInteger(itemLine,10));
+				if (itemFrequency >= threshold) {
+					System.out.println(new BigInteger(itemLine,10)+" "+itemFrequency);
+					baseItemSet.add(new BigInteger(itemLine,10));
+				}
+			}
+			baseItemReader.close();
+			
+			frequentPatternMap.put(size, baseItemSet);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
